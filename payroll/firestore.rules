@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isEmployee() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'employee';
+    }
+    
+    function isOwnData(employeeId) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.employeeId == employeeId;
+    }
+    
+    // Users collection - users can read their own data, only admins can write
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+    
+    // Employees collection - all authenticated users can read, only admins can write
+    match /employees/{employeeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Compensation collection - employees can read only their own data, admins have full access
+    match /compensation/{employeeId} {
+      allow read: if isAuthenticated() && (isAdmin() || isOwnData(employeeId));
+      allow write: if isAdmin();
+    }
+    
+    // Leave records - all authenticated users can read and create, only admins can update/delete
+    match /leaveRecords/{leaveId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+    
+    // Payroll runs - all authenticated users can read, only admins can write
+    match /payrollRuns/{payrollId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Payroll items - all authenticated users can read, only admins can write
+    match /payrollItems/{itemId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // System logs - only admins can read, all authenticated users can write
+    match /systemLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isAuthenticated();
+    }
+  }
+}
+

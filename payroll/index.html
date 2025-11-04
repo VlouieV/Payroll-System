@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Processing System</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>Payroll Processing System</h1>
+                <div class="header-actions">
+                    <span class="welcome-text">Welcome, <span id="userName"></span></span>
+                    <button class="btn btn-logout" onclick="app.logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Sidebar Navigation -->
+            <div class="sidebar">
+                <!-- Shared Menu Items -->
+                <a href="#" class="nav-item active" data-section="employeeDashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span>My Account</span>
+                </a>
+                <a href="#" class="nav-item" data-section="leaveReport">
+                    <span class="nav-icon">📋</span>
+                    <span>Leave Report</span>
+                </a>
+                <a href="#" class="nav-item" data-section="salaryReport">
+                    <span class="nav-icon">💰</span>
+                    <span>Salary Report</span>
+                </a>
+                <a href="#" class="nav-item" data-section="changePassword">
+                    <span class="nav-icon">🔒</span>
+                    <span>Change Password</span>
+                </a>
+
+                <!-- Admin Only Menu Items -->
+                <div class="nav-divider admin-only"></div>
+                <a href="#" class="nav-item admin-only" data-section="adminDashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="#" class="nav-item admin-only" data-section="employeeManagement">
+                    <span class="nav-icon">👥</span>
+                    <span>Employee Management</span>
+                </a>
+                <a href="#" class="nav-item admin-only" data-section="compensationManagement">
+                    <span class="nav-icon">💵</span>
+                    <span>Compensation</span>
+                </a>
+                <a href="#" class="nav-item admin-only" data-section="payrollProcessing">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Payroll Processing</span>
+                </a>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="content">
+                <!-- Employee Dashboard -->
+                <div id="employeeDashboard" class="content-section active">
+                    <div class="welcome-section">
+                        <h2>Welcome to Your Dashboard</h2>
+                        <p>Manage your payroll information and access important reports</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Employee Information</h3>
+                        <div class="payroll-summary">
+                            <div class="summary-item">
+                                <h4>Name</h4>
+                                <p id="empName">Loading...</p>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Department</h4>
+                                <p id="empDepartment">Loading...</p>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Position</h4>
+                                <p id="empPosition">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <button class="btn btn-primary" onclick="app.showSection('salaryReport')">View Salary Report</button>
+                        <button class="btn btn-primary" onclick="app.showSection('leaveReport')">Check Leave Balance</button>
+                        <button class="btn btn-primary">Download Pay Slip</button>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard -->
+                <div id="adminDashboard" class="content-section">
+                    <div class="welcome-section">
+                        <h2>Admin Dashboard</h2>
+                        <p>System overview and quick actions</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>System Overview</h3>
+                        <div class="payroll-summary">
+                            <div class="summary-item">
+                                <h4>Total Employees</h4>
+                                <p id="totalEmployees">0</p>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Active Employees</h4>
+                                <p id="activeEmployees">0</p>
+                            </div>
+                            <div class="summary-item pending">
+                                <h4>Pending Payroll</h4>
+                                <p id="pendingPayroll">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <button class="btn btn-primary" onclick="app.showSection('employeeManagement')">Add Employee</button>
+                        <button class="btn btn-primary" onclick="app.showSection('payrollProcessing')">Process Payroll</button>
+                        <button class="btn btn-primary">Generate Reports</button>
+                    </div>
+                </div>
+
+                <!-- Leave Report -->
+                <div id="leaveReport" class="content-section">
+                    <div class="card">
+                        <h3>Leave Report</h3>
+                        
+                        <div class="payroll-summary">
+                            <div class="summary-item">
+                                <h4>Annual Leave</h4>
+                                <p>15 days remaining</p>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Sick Leave</h4>
+                                <p>10 days remaining</p>
+                            </div>
+                            <div class="summary-item pending">
+                                <h4>Pending Requests</h4>
+                                <p>2 requests</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leaveType">Leave Type</label>
+                            <select id="leaveType">
+                                <option value="annual">Annual Leave</option>
+                                <option value="sick">Sick Leave</option>
+                                <option value="emergency">Emergency Leave</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leaveStartDate">Start Date</label>
+                            <input type="date" id="leaveStartDate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leaveEndDate">End Date</label>
+                            <input type="date" id="leaveEndDate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="leaveReason">Reason</label>
+                            <textarea id="leaveReason" rows="3" placeholder="Enter reason for leave"></textarea>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="app.applyLeave()">Apply for Leave</button>
+                        <button class="btn btn-secondary" onclick="app.loadLeaveHistory()">View Leave History</button>
+
+                        <div id="leaveHistory" class="leave-history" style="display: none;">
+                            <h4>Leave History</h4>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaveTable">
+                                    <!-- Leave records will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salary Report -->
+                <div id="salaryReport" class="content-section">
+                    <div class="card">
+                        <h3>Salary Report</h3>
+                        <div class="payroll-summary">
+                            <div class="summary-item amount">
+                                <h4>Current Salary</h4>
+                                <p id="currentSalary">$0.00</p>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Last Increment</h4>
+                                <p>5% (Jan 2024)</p>
+                            </div>
+                            <div class="summary-item">
+                                <h4>Next Pay Date</h4>
+                                <p>25th March 2024</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="payPeriod">Select Pay Period</label>
+                            <select id="payPeriod">
+                                <option>March 2024</option>
+                                <option>February 2024</option>
+                                <option>January 2024</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-primary">Generate Report</button>
+                        <button class="btn btn-secondary">Download Pay Slip</button>
+                        <button class="btn btn-secondary">View Tax Summary</button>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div id="changePassword" class="content-section">
+                    <div class="card">
+                        <h3>Change Password</h3>
+                        <div id="passwordMessage" class="message"></div>
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                        </div>
+                        <button class="btn btn-primary" onclick="app.changePassword()">Update Password</button>
+                    </div>
+                </div>
+
+                <!-- Employee Management (Admin Only) -->
+                <div id="employeeManagement" class="content-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Employee Management</h3>
+                            <button class="btn btn-primary" onclick="app.showAddEmployeeForm()">+ Add Employee</button>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeTable">
+                                <!-- Employee rows will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Compensation Management (Admin Only) -->
+                <div id="compensationManagement" class="content-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Compensation Management</h3>
+                            <button class="btn btn-primary" onclick="app.showCompensationForm()">+ Set Compensation</button>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Base Salary</th>
+                                    <th>Bonus</th>
+                                    <th>Allowances</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="compensationTable">
+                                <!-- Compensation rows will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payroll Processing (Admin Only) -->
+                <div id="payrollProcessing" class="content-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Payroll Processing</h3>
+                            <button class="btn btn-primary" onclick="app.initiatePayroll()">+ New Payroll Run</button>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Pay Period</th>
+                                    <th>Run Date</th>
+                                    <th>Status</th>
+                                    <th>Total Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payrollTable">
+                                <!-- Payroll runs will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Payroll Processing System &copy; 2024 | Secure • Reliable • Efficient</p>
+        </div>
+    </div>
+
+    <!-- Modals will be added here -->
+    <div id="modalContainer"></div>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
